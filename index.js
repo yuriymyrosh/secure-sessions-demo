@@ -1,13 +1,13 @@
 const express = require('express');
-const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const app = express();
 const router = express.Router();
 const session = require('express-session');
+const csurf = require('tiny-csrf');
 
-const csrfProtect = csrf({cookie: true})
-app.use(cookieParser());
+const csrfProtect = csurf('some-secret-32-chars-is-hereeeee', ['POST']);
+
 app.use(bodyParser.json());
 app.use(session({
   secret: 'secret-key',
@@ -15,6 +15,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 60000 } // session timeout of 60 seconds
 }));
+app.use(cookieParser('cookie-parser-secret'));
 
 
 router.get('/', (req, res) => {
@@ -28,14 +29,14 @@ router.get('/', (req, res) => {
  * CSRF protection - uncomment the commented lines
  */
 
-// router.get('/users-form', csrfProtect, (req, res) => {
+// app.use(csrfProtect);
+
 router.get('/users-form', (req, res) => {
   res.send({
     csrfToken: req.csrfToken()
   });
 })
 
-// router.post('/users', csrfProtect, (req, res) => {
 router.post('/users', (req, res) => {
   console.log('User created', req.body);
 
