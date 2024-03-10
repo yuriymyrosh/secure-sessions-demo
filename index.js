@@ -6,14 +6,28 @@ const router = express.Router();
 const session = require('express-session');
 const csurf = require('tiny-csrf');
 
-const csrfProtect = csurf('some-secret-32-chars-is-hereeeee', ['POST']);
+const csrf = csurf('some-secret-32-chars-is-hereeeee', ['POST']);
+const csrfProtect = (req, res, next) => {
+  try {
+    csrf(req, res, next);
+  } catch (error) {
+    console.error(error.message);
+    res.status(400).send({
+      error: error.message
+    }); 
+  }
+}
 
 app.use(bodyParser.json());
 app.use(session({
   secret: 'secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 60000 } // session timeout of 60 seconds
+  cookie: { 
+    maxAge: 60000, // session timeout of 60 seconds
+    // sameSite: 'strict', // same site cookies
+    // secure: true // secure
+  } 
 }));
 app.use(cookieParser('cookie-parser-secret'));
 
@@ -28,8 +42,7 @@ router.get('/', (req, res) => {
 /**
  * CSRF protection - uncomment the commented lines
  */
-
-// app.use(csrfProtect);
+app.use(csrfProtect);
 
 router.get('/users-form', (req, res) => {
   res.send({
@@ -69,6 +82,7 @@ router.post('/login', (req, res) => {
 });
 
 router.get('/session-data', (req, res) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
   res.send({
     session: req.session
   })
@@ -76,9 +90,12 @@ router.get('/session-data', (req, res) => {
 
 router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
-    res.send({
-      isLoggedIn: false
-    })
+    if (!err) {
+      res.clearCookie('connect.sid');
+      res.send({
+        isLoggedIn: false
+      });
+    }
   });
 });
 
