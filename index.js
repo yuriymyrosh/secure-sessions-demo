@@ -5,6 +5,7 @@ const app = express();
 const router = express.Router();
 const session = require('express-session');
 const csurf = require('tiny-csrf');
+const cors = require('cors')
 
 const csrf = csurf('some-secret-32-chars-is-hereeeee', ['POST']);
 const csrfProtect = (req, res, next) => {
@@ -25,11 +26,17 @@ app.use(session({
   saveUninitialized: false,
   cookie: { 
     maxAge: 60000, // session timeout of 60 seconds
-    // sameSite: 'strict', // same site cookies
+    sameSite: 'strict', // same site cookies
     // secure: true // secure
   } 
 }));
 app.use(cookieParser('cookie-parser-secret'));
+
+app.use(cors({
+  origin: ['http://localhost:4000'], //https://gksd4mdf-4000.euw.devtunnels.ms
+  credentials: true,
+  methods: 'GET,POST,OPTIONS',
+}))
 
 
 router.get('/', (req, res) => {
