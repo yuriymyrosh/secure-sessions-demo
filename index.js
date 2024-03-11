@@ -33,7 +33,7 @@ app.use(session({
 app.use(cookieParser('cookie-parser-secret'));
 
 app.use(cors({
-  origin: ['http://localhost:4000'], //https://gksd4mdf-4000.euw.devtunnels.ms
+  origin: ['http://localhost:4000'],
   credentials: true,
   methods: 'GET,POST,OPTIONS',
 }))
